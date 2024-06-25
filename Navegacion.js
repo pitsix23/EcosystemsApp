@@ -22,8 +22,6 @@ function Tabs (){
             <TabNav.Screen
             name="Home2"
             component={Home2}
-            /*options={{
-            }}*/
             />
         </TabNav.Navigator>
     )
