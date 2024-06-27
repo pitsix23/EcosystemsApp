@@ -28,7 +28,7 @@ function LoginScreen({ navigation }) {
             end={{ x: 1, y: 1 }}
             style={styles.btnLogin}
           >
-            <Text style={styles.txtLogin} onPress={() => navigation.navigate('Home')}>Iniciar sesión</Text>
+            <Text style={styles.txtLogin} onPress={() => navigation.navigate('HomeScreen')}>Iniciar sesión</Text>
           </LinearGradient>
         </TouchableOpacity>
 

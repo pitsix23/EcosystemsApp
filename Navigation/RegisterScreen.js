@@ -37,7 +37,7 @@ export default function RegisterScreen({ navigation }) {
       });
 
       Alert.alert('Registro exitoso', 'El usuario ha sido registrado exitosamente.');
-      navigation.navigate('Main');
+      navigation.navigate('Login');
     } catch (error) {
       console.error('Error registrando el usuario:', error);
       Alert.alert('Error', 'Hubo un problema al registrar el usuario.');
