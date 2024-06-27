@@ -5,7 +5,7 @@ function SplashScreen() {
   return (
     <View style={styles.splashContainer}>
       <Image source={require('../images/logo_1.png')} style={styles.splashImage} />
-      <Text style={styles.splashText}>Loading...</Text>
+      <Text style={styles.splashText}>Bienvenido...</Text>
     </View>
   );
 }

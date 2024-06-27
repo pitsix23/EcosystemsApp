@@ -13,7 +13,6 @@ function LoginScreen({ navigation }) {
         </ImageBackground>
       </View>
       <View style={styles.formContainer}>
-        <Text style={styles.txtTitulo}>Bienvenidos!</Text>
         <Text style={styles.txtSubtitulo}>Ingresar con tu cuenta</Text>
         <TextInput placeholder='multimedios@gmail.com' style={styles.txtInput}></TextInput>
         <TextInput placeholder='contraseña' secureTextEntry={true} style={styles.txtInput}></TextInput>
@@ -73,14 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 10,
     padding: 10,
-    marginTop: -175,
-  },
-  txtTitulo: {
-    fontSize: 50,
-    fontWeight: 'bold',
-    color: '#34434D',
-    textAlign: 'left',
-    paddingLeft: 30,
+    marginTop: -155,
   },
   txtSubtitulo: {
     fontSize: 20,
