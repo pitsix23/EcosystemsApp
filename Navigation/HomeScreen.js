@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ImageBackground, Image, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, ImageBackground, Image, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl, Dimensions } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import UploadNoticeScreen from './UploadNoticeScreen';
 import UploadImgScreen from './UploadImgScreen';
 import EditProfileScreen from './EditProfileScreen';
+import { getDatabase, ref, onValue } from 'firebase/database'; // Importa las funciones necesarias de Firebase Database
+import { app } from '../accesoFirebase'; // Ajusta la ruta según sea necesario
 import { useNavigation } from '@react-navigation/native';
 import { getAllImages } from '../firebaseStorage';
+import useNoticias from '../Hooks/useNoticias';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -91,36 +94,52 @@ function HomeStackScreen() {
   );
 }
 
+const { width } = Dimensions.get('window');
+const itemWidth = width / 2 - 15;
+
 function HomeScreen() {
   const navigation = useNavigation();
-  const [imageUrls, setImageUrls] = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const noticias = useNoticias(); // Usa el hook para obtener las noticias
 
   useEffect(() => {
-    fetchImages();
+    fetchData();
   }, []);
 
-  const fetchImages = async () => {
+  const fetchData = async () => {
     try {
       const urls = await getAllImages();
-      setImageUrls(urls);
+      const combinedData = urls.map(url => ({ type: 'image', url }));
+      const noticiasData = noticias.map(noticia => ({ type: 'noticia', noticia }));
+      const newData = [...combinedData, ...noticiasData];
+      setData(newData);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
-      setRefreshing(false); // Ensure refreshing indicator is turned off
+      setRefreshing(false); // Asegura que el indicador de actualización esté apagado
     }
   };
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true); // Show the refresh indicator
-    fetchImages(); // Fetch images again
+    setRefreshing(true); // Muestra el indicador de actualización
+    fetchData(); // Vuelve a obtener los datos
   }, []);
 
-  const renderItem = ({ item }) => (
-    <Image source={{ uri: item }} style={styles.image} />
-  );
+  const renderItem = ({ item }) => {
+    if (item.type === 'image') {
+      return <Image source={{ uri: item.url }} style={[styles.item, { height: itemWidth, width: itemWidth }]} />;
+    } else if (item.type === 'noticia') {
+      return (
+        <View style={[styles.item, { height: itemWidth, width: itemWidth }]}>
+          <Text style={styles.noticiaText}>{item.noticia.texto}</Text>
+        </View>
+      );
+    }
+    return null;
+  };
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -142,12 +161,11 @@ function HomeScreen() {
         <Text style={styles.contentText}>Inicio</Text>
       </View>
       <FlatList
-        data={imageUrls}
+        data={data}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
-        numColumns={2}
+        numColumns={2} // Mostrar en 2 columnas
         contentContainerStyle={styles.flatListContent}
-        style={styles.flatList}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
     </View>
@@ -157,6 +175,7 @@ function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'grey',
   },
   halfBackground: {
     height: '10%',
@@ -202,16 +221,24 @@ const styles = StyleSheet.create({
     top: -20,
   },
   flatListContent: {
-    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+  },
+  item: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginVertical: 5,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  flatList: {
-    flexGrow: 1,
-  },
-  image: {
-    width: 150,
-    height: 150,
-    margin: 5,
+  noticiaText: {
+    fontSize: 16,
+    textAlign: 'justify',
+    paddingHorizontal: 10,
   },
 });
 

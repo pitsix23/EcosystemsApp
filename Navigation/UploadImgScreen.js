@@ -1,12 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet, Button, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet, Button, Alert, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { database } from '../accesoFirebase'; // Importa tu configuración de Firebase Database
 
 function UploadImgScreen({ navigation }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageName, setImageName] = useState('');
+  const [description, setDescription] = useState('');
 
   const openImagePickerAsync = useCallback(async () => {
     try {
@@ -44,13 +46,13 @@ function UploadImgScreen({ navigation }) {
         Alert.alert('Error', 'Por favor selecciona una imagen primero.');
         return;
       }
-  
+
       const response = await fetch(selectedImage);
       const blob = await response.blob();
-  
+
       const storageRef = ref(getStorage(), `images/${imageName}`);
       const uploadTask = uploadBytesResumable(storageRef, blob);
-  
+
       uploadTask.on(
         'state_changed',
         (snapshot) => {
@@ -62,9 +64,20 @@ function UploadImgScreen({ navigation }) {
           Alert.alert('Error', 'Hubo un problema al subir la imagen.');
         },
         () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
             console.log('File available at', downloadURL);
+
+            // Guardar la URL y la descripción en Firebase Database
+            const imagesRef = ref(database, 'images');
+            const newImageRef = push(imagesRef); // Otra forma de identificar cada imagen
+
+            set(newImageRef, {
+              url: downloadURL,
+              description: description // Aquí guardamos la descripción ingresada
+            });
+
             setSelectedImage(null); // Actualiza el estado con la nueva URL
+            setDescription(''); // Limpia el campo de descripción
             Alert.alert('Imagen subida con éxito');
           });
         }
@@ -74,7 +87,6 @@ function UploadImgScreen({ navigation }) {
       Alert.alert('Error', 'Hubo un problema al preparar la imagen para subir.');
     }
   };
-  
 
   return (
     <View style={styles.container}>
@@ -97,14 +109,18 @@ function UploadImgScreen({ navigation }) {
             <>
               <Text style={styles.imageName}>{imageName}</Text>
               <Image source={{ uri: selectedImage }} style={styles.uploadedImage} />
+              <TextInput
+                style={styles.inputDescription}
+                placeholder="Descripción de la imagen"
+                onChangeText={text => setDescription(text)}
+                value={description}
+              />
+              <Button title="Subir Imagen a Firebase" onPress={uploadImageToFirebase} />
             </>
           ) : (
-            <Text>Selecciona una imagen</Text>
+            <Button title="Seleccionar Imagen" onPress={openImagePickerAsync} />
           )}
-          <Button title="Seleccionar Imagen" onPress={openImagePickerAsync} />
-          <Button title="Subir Imagen a Firebase" onPress={uploadImageToFirebase} />
         </View>
-        
       </View>
     </View>
   );
@@ -113,6 +129,7 @@ function UploadImgScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'grey',
   },
   halfBackground: {
     height: '10%',
@@ -167,9 +184,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   contentSelect: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#22222',
+    alignItems: 'center',
+    marginTop: 20,
   },
   imageName: {
     fontSize: 16,
@@ -182,7 +198,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 20,
   },
+  inputDescription: {
+    width: '80%',
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingHorizontal: 10,
+    marginBottom: 10,
+  },
 });
 
 export default UploadImgScreen;
-
