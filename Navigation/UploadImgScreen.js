@@ -2,10 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet, Button, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { storage } from '../accesoFirebase'; // Importa el módulo de Firebase que configuraste
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 function UploadImgScreen({ navigation }) {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [imageName, setImageName] = useState('');
 
   const openImagePickerAsync = useCallback(async () => {
     try {
@@ -16,10 +17,20 @@ function UploadImgScreen({ navigation }) {
         return;
       }
 
-      const pickerResult = await ImagePicker.launchImageLibraryAsync();
+      const pickerResult = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
 
-      if (!pickerResult.cancelled) {
-        setSelectedImage(pickerResult.uri);
+      console.log('Picker Result:', pickerResult);
+
+      if (!pickerResult.canceled && pickerResult.assets && pickerResult.assets.length > 0) {
+        const asset = pickerResult.assets[0];
+        setSelectedImage(asset.uri);
+        setImageName(asset.fileName);
+      } else {
+        Alert.alert('Error', 'No se seleccionó ninguna imagen.');
       }
     } catch (error) {
       console.error('Error al seleccionar imagen:', error);
@@ -34,14 +45,11 @@ function UploadImgScreen({ navigation }) {
         return;
       }
   
-      console.log('Selected Image URI:', selectedImage); // Verifica la URI de la imagen seleccionada
-  
       const response = await fetch(selectedImage);
       const blob = await response.blob();
   
-      const filename = selectedImage.substring(selectedImage.lastIndexOf('/') + 1);
-  
-      const uploadTask = storage.ref(`images/${filename}`).put(blob);
+      const storageRef = ref(getStorage(), `images/${imageName}`);
+      const uploadTask = uploadBytesResumable(storageRef, blob);
   
       uploadTask.on(
         'state_changed',
@@ -54,10 +62,10 @@ function UploadImgScreen({ navigation }) {
           Alert.alert('Error', 'Hubo un problema al subir la imagen.');
         },
         () => {
-          uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             console.log('File available at', downloadURL);
+            setSelectedImage(null); // Actualiza el estado con la nueva URL
             Alert.alert('Imagen subida con éxito');
-            // Guarda downloadURL en tu base de datos Firebase si es necesario
           });
         }
       );
@@ -84,13 +92,19 @@ function UploadImgScreen({ navigation }) {
       </View>
       <View style={styles.contentContainer}>
         <Text style={styles.contentText}>Subir Imagen</Text>
-        {selectedImage ? (
-          <Image source={{ uri: selectedImage }} style={styles.uploadedImage} />
-        ) : (
-          <Text>Selecciona una imagen</Text>
-        )}
-        <Button title="Seleccionar Imagen" onPress={openImagePickerAsync} />
-        <Button title="Subir Imagen a Firebase" onPress={uploadImageToFirebase} />
+        <View style={styles.contentSelect}>
+          {selectedImage ? (
+            <>
+              <Text style={styles.imageName}>{imageName}</Text>
+              <Image source={{ uri: selectedImage }} style={styles.uploadedImage} />
+            </>
+          ) : (
+            <Text>Selecciona una imagen</Text>
+          )}
+          <Button title="Seleccionar Imagen" onPress={openImagePickerAsync} />
+          <Button title="Subir Imagen a Firebase" onPress={uploadImageToFirebase} />
+        </View>
+        
       </View>
     </View>
   );
@@ -101,18 +115,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   halfBackground: {
-    height: '10%', // Mostrar solo la mitad
-    overflow: 'hidden', // Ocultar el resto de la imagen
-    borderBottomLeftRadius: 20, // Borde redondeado inferior izquierdo
-    borderBottomRightRadius: 20, // Borde redondeado inferior derecho
+    height: '10%',
+    overflow: 'hidden',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   backgroundImage: {
     flex: 1,
     resizeMode: 'cover',
   },
   imageStyle: {
-    borderBottomLeftRadius: 20, // Borde redondeado inferior izquierdo
-    borderBottomRightRadius: 20, // Borde redondeado inferior derecho
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   overlay: {
     flex: 1,
@@ -146,10 +160,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   contentText: {
+    position: 'absolute',
+    top: -55,
     fontSize: 24,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 20,
+  },
+  contentSelect: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#22222',
+  },
+  imageName: {
+    fontSize: 16,
+    color: '#ffffff',
+    marginBottom: 10,
   },
   uploadedImage: {
     width: 200,
@@ -160,3 +185,4 @@ const styles = StyleSheet.create({
 });
 
 export default UploadImgScreen;
+

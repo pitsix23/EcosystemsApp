@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, ImageBackground, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ImageBackground, Image, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import UploadNoticeScreen from './UploadNoticeScreen';
 import UploadImgScreen from './UploadImgScreen';
 import EditProfileScreen from './EditProfileScreen';
 import { useNavigation } from '@react-navigation/native';
+import { getAllImages } from '../firebaseStorage';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -37,7 +38,7 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="home" color={color} size={size} />
           ),
-          headerShown: false, // Ocultar la barra superior para esta pantalla
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -48,7 +49,7 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="plus-box" color={color} size={size} />
           ),
-          headerShown: false, // Ocultar la barra superior para esta pantalla
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -59,7 +60,7 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="image" color={color} size={size} />
           ),
-          headerShown: false, // Ocultar la barra superior para esta pantalla
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -70,7 +71,7 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="logout" color={color} size={size} />
           ),
-          headerShown: false, // Ocultar la barra superior para esta pantalla
+          headerShown: false,
         }}
       />
     </Tab.Navigator>
@@ -81,7 +82,7 @@ function HomeStackScreen() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false, // Asegurarse de que la barra superior esté oculta
+        headerShown: false,
       }}
     >
       <Stack.Screen name="HomeScreen" component={HomeScreen} />
@@ -91,7 +92,39 @@ function HomeStackScreen() {
 }
 
 function HomeScreen() {
-  const navigation = useNavigation(); // Obtener la navegación desde el contexto
+  const navigation = useNavigation();
+  const [imageUrls, setImageUrls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+  const fetchImages = async () => {
+    try {
+      const urls = await getAllImages();
+      setImageUrls(urls);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false); // Ensure refreshing indicator is turned off
+    }
+  };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true); // Show the refresh indicator
+    fetchImages(); // Fetch images again
+  }, []);
+
+  const renderItem = ({ item }) => (
+    <Image source={{ uri: item }} style={styles.image} />
+  );
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
   return (
     <View style={styles.container}>
@@ -108,6 +141,15 @@ function HomeScreen() {
       <View style={styles.contentContainer}>
         <Text style={styles.contentText}>Inicio</Text>
       </View>
+      <FlatList
+        data={imageUrls}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        numColumns={2}
+        contentContainerStyle={styles.flatListContent}
+        style={styles.flatList}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      />
     </View>
   );
 }
@@ -117,18 +159,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   halfBackground: {
-    height: '10%', // Mostrar solo la mitad
-    overflow: 'hidden', // Ocultar el resto de la imagen
-    borderBottomLeftRadius: 20, // Borde redondeado inferior izquierdo
-    borderBottomRightRadius: 20, // Borde redondeado inferior derecho
+    height: '10%',
+    overflow: 'hidden',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   backgroundImage: {
     flex: 1,
     resizeMode: 'cover',
   },
   imageStyle: {
-    borderBottomLeftRadius: 20, // Borde redondeado inferior izquierdo
-    borderBottomRightRadius: 20, // Borde redondeado inferior derecho
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   overlay: {
     flex: 1,
@@ -138,27 +180,38 @@ const styles = StyleSheet.create({
   },
   headerButtonContainer: {
     position: 'absolute',
-    top: 20,
+    top: 37,
     right: 20,
-    zIndex: 1,
   },
   logoImage: {
     position: 'absolute',
-    top: 20,
-    left: 20,
+    top: 22,
+    left: 8,
     width: 50,
     height: 50,
     resizeMode: 'contain',
   },
   contentContainer: {
-    position: 'absolute',
-    left: 150,
-    top: 35,
+    alignItems: 'center',
+    marginVertical: -15,
   },
   contentText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#ffffff',
+    top: -20,
+  },
+  flatListContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  flatList: {
+    flexGrow: 1,
+  },
+  image: {
+    width: 150,
+    height: 150,
+    margin: 5,
   },
 });
 
