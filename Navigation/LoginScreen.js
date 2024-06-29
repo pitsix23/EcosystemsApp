@@ -17,24 +17,24 @@ function LoginScreen({ navigation }) {
         <TextInput placeholder='multimedios@gmail.com' style={styles.txtInput}></TextInput>
         <TextInput placeholder='contraseña' secureTextEntry={true} style={styles.txtInput}></TextInput>
 
-        <TouchableOpacity>
-          <Text style={styles.txtPass} onPress={() => navigation.navigate('ResetPassword')}>¿Has olvidado su contraseña?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
+          <Text style={styles.txtPass} >¿Has olvidado su contraseña?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')}>
           <LinearGradient
             colors={['green', '#005B58']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.btnLogin}
           >
-            <Text style={styles.txtLogin} onPress={() => navigation.navigate('HomeScreen')}>Iniciar sesión</Text>
+            <Text style={styles.txtLogin} >Iniciar sesión</Text>
           </LinearGradient>
         </TouchableOpacity>
 
         <Text style={styles.txtCuenta}>No tiene cuenta?</Text>
-        <TouchableOpacity>
-          <Text style={styles.txtRegistrarse} onPress={() => navigation.navigate('Register')}>Registrarse</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.txtRegistrarse}>Registrarse</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
   topRightImage: {
     position: 'absolute',
-    top: 0,
+    top: 8,
     right: 0,
     width: 180,
     height: 180,
@@ -73,21 +73,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginTop: -155,
+    alignItems: 'center',
   },
   txtSubtitulo: {
     fontSize: 20,
     color: 'gray',
-    textAlign: 'left',
-    paddingLeft: 30,
-    marginTop: 20,
+    textAlign:'center',
+    marginBottom: 0,
   },
   txtInput: {
-    width: '85%',
+    width: '100%',
     height: 50,
     borderRadius: 30,
     paddingLeft: 30,
     marginTop: 20,
-    marginLeft: 20,
     borderColor: 'gray',
     color: '#000000',
     backgroundColor: '#F5F5F5',
@@ -98,39 +97,40 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   txtPass: {
-    textAlign: 'right',
-    paddingTop: 10,
-    marginRight: 50,
-    color: '#00C1BB',
+    textAlign: 'center',
+    color: 'green',
     fontSize: 15,
+    fontWeight: 'bold',
+    marginTop: 5,
+    textDecorationLine: 'underline',
   },
   btnLogin: {
     borderRadius: 30,
     width: 219,
     height: 53,
-    marginTop: 35,
-    marginLeft: 60,
-    paddingTop: 10,
+    marginTop: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   txtLogin: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    textAlign: 'center',
   },
   txtCuenta: {
     textAlign: 'center',
     paddingTop: 10,
-    color: '#00C1BB',
+    color: 'green',
     fontSize: 15,
-    alignItems: 'center',
+    marginTop: 10,
   },
   txtRegistrarse: {
     textAlign: 'center',
-    color: '#00C1BB',
+    color: 'green',
     fontSize: 15,
-    alignItems: 'center',
     fontWeight: 'bold',
+    marginTop: 5,
+    textDecorationLine: 'underline',
   },
 });
 
