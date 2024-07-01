@@ -3,14 +3,14 @@ import { View, Text, ImageBackground, Image, FlatList, TouchableOpacity, Activit
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import UploadNoticeScreen from './UploadNoticeScreen';
 import UploadImgScreen from './UploadImgScreen';
 import EditProfileScreen from './EditProfileScreen';
-import { getDatabase, ref, onValue } from 'firebase/database'; // Importa las funciones necesarias de Firebase Database
-import { app } from '../accesoFirebase'; // Ajusta la ruta según sea necesario
 import { useNavigation } from '@react-navigation/native';
-import { getAllImages } from '../firebaseStorage';
-import useNoticias from '../Hooks/useNoticias';
+import { getAllImages } from '../firebaseStorage'; // Asegúrate de importar correctamente
+import { database } from '../accesoFirebase'; // Asegúrate de importar correctamente
+import { ref, onValue } from 'firebase/database';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -94,55 +94,112 @@ function HomeStackScreen() {
   );
 }
 
-const { width } = Dimensions.get('window');
-const itemWidth = width / 2 - 15;
-
 function HomeScreen() {
   const navigation = useNavigation();
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [images, setImages] = useState([]);
+  const [noticias, setNoticias] = useState([]);
+  const [loadingImages, setLoadingImages] = useState(true);
+  const [loadingNoticias, setLoadingNoticias] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const noticias = useNoticias(); // Usa el hook para obtener las noticias
+
+  // Obtener noticias usando Firebase Realtime Database
+  useEffect(() => {
+    const noticiasRef = ref(database, 'noticias');
+    onValue(noticiasRef, (snapshot) => {
+      const noticiasData = snapshot.val() || [];
+      setNoticias(Object.values(noticiasData)); // Convertir objeto de noticias en array
+      setLoadingNoticias(false);
+      setRefreshing(false);
+      console.log('Noticias Data:', noticiasData); // Verificar las noticias leídas desde Firebase
+    }, (error) => {
+      console.error('Error fetching noticias:', error);
+      setLoadingNoticias(false);
+      setRefreshing(false);
+    });
+  }, []);
 
   useEffect(() => {
-    fetchData();
+    fetchData(); // Cargar imágenes y noticias al inicio
   }, []);
+
+  useEffect(() => {
+    // Actualizar imágenes y noticias cuando refreshing cambia
+    if (refreshing) {
+      fetchData();
+    }
+  }, [refreshing]);
 
   const fetchData = async () => {
     try {
-      const urls = await getAllImages();
-      const combinedData = urls.map(url => ({ type: 'image', url }));
-      const noticiasData = noticias.map(noticia => ({ type: 'noticia', noticia }));
-      const newData = [...combinedData, ...noticiasData];
-      setData(newData);
+      const urls = await getAllImages(); // Obtener URLs de imágenes desde Firebase Storage
+      setImages(urls); // Actualizar estado de imágenes
+      setLoadingImages(false);
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching images:', error);
+      setLoadingImages(false);
+    }
+
+    try {
+      // Actualizar estado de noticias usando Firebase Realtime Database
+      const noticiasRef = ref(database, 'noticias');
+      onValue(noticiasRef, (snapshot) => {
+        const noticiasData = snapshot.val() || [];
+        setNoticias(Object.values(noticiasData)); // Convertir objeto de noticias en array
+        setLoadingNoticias(false);
+        setRefreshing(false);
+        console.log('Noticias Data:', noticiasData); // Verificar las noticias leídas desde Firebase
+      }, (error) => {
+        console.error('Error fetching noticias:', error);
+        setLoadingNoticias(false);
+        setRefreshing(false);
+      });
+    } catch (error) {
+      console.error('Error fetching noticias:', error);
+      setLoadingNoticias(false);
+      setRefreshing(false);
     } finally {
-      setLoading(false);
-      setRefreshing(false); // Asegura que el indicador de actualización esté apagado
+      setRefreshing(false); // Desactivar indicador de actualización
     }
   };
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true); // Muestra el indicador de actualización
-    fetchData(); // Vuelve a obtener los datos
+    setRefreshing(true); // Activar indicador de actualización
   }, []);
 
   const renderItem = ({ item }) => {
     if (item.type === 'image') {
-      return <Image source={{ uri: item.url }} style={[styles.item, { height: itemWidth, width: itemWidth }]} />;
+      return (
+        <TouchableOpacity onPress={() => navigation.navigate('DetalleImagen', { image: item })}>
+          <Image source={{ uri: item.uri }} style={styles.item} />
+        </TouchableOpacity>
+      );
     } else if (item.type === 'noticia') {
       return (
-        <View style={[styles.item, { height: itemWidth, width: itemWidth }]}>
-          <Text style={styles.noticiaText}>{item.noticia.texto}</Text>
-        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('DetalleNoticia', { noticia: item })}>
+          <View style={styles.item}>
+            <Text style={styles.noticiaText}>{item.texto}</Text>
+          </View>
+        </TouchableOpacity>
       );
     }
     return null;
   };
 
-  if (loading) {
+  if (loadingImages || loadingNoticias) {
     return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  const dataToShow = [
+    ...images.map(image => ({ type: 'image', uri: image })), // Asegurarse de que el campo `uri` coincida con las URLs válidas
+    ...noticias.map(noticia => ({ type: 'noticia', ...noticia })),
+  ];
+
+  if (dataToShow.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text>No hay imágenes ni noticias disponibles.</Text>
+      </View>
+    );
   }
 
   return (
@@ -161,12 +218,13 @@ function HomeScreen() {
         <Text style={styles.contentText}>Inicio</Text>
       </View>
       <FlatList
-        data={data}
+        data={dataToShow}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
         numColumns={2} // Mostrar en 2 columnas
         contentContainerStyle={styles.flatListContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        style={styles.flatList}
       />
     </View>
   );
@@ -221,8 +279,7 @@ const styles = StyleSheet.create({
     top: -20,
   },
   flatListContent: {
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingBottom: 80, // Ajustar según sea necesario
   },
   item: {
     backgroundColor: '#fff',
@@ -234,11 +291,16 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     alignItems: 'center',
     justifyContent: 'center',
+    width: Dimensions.get('window').width / 2 - 15, // Ajustar ancho del elemento según tamaño de la pantalla
+    height: Dimensions.get('window').width / 2 - 15, // Ajustar alto del elemento según tamaño de la pantalla
   },
   noticiaText: {
     fontSize: 16,
     textAlign: 'justify',
     paddingHorizontal: 10,
+  },
+  flatList: {
+    flex: 1,
   },
 });
 

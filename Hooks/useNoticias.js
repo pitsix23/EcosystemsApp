@@ -1,26 +1,26 @@
-import { getDatabase, ref, get, onValue } from 'firebase/database';
-import { useEffect, useState } from 'react';
-import { app } from '../accesoFirebase'; // Ajusta la ruta según sea necesario
+// useNoticias.js
+
+import { useState, useEffect } from 'react';
+import { database } from '../accesoFirebase'; // Ajusta la ruta según sea necesario
+import { ref, onValue } from 'firebase/database';
 
 const useNoticias = () => {
   const [noticias, setNoticias] = useState([]);
-  const db = getDatabase(app);
-  const noticiasRef = ref(db, 'noticias'); // Ajusta la referencia según tu estructura de base de datos
 
   useEffect(() => {
     const fetchNoticias = async () => {
       try {
-        const snapshot = await get(noticiasRef);
-        if (snapshot.exists()) {
-          const noticiasList = [];
-          snapshot.forEach((childSnapshot) => {
-            const noticia = childSnapshot.val();
-            noticiasList.push(noticia);
-          });
-          setNoticias(noticiasList);
-        } else {
-          console.log('No data available');
-        }
+        const noticiasRef = ref(database, 'noticias');
+
+        onValue(noticiasRef, (snapshot) => {
+          const noticiasData = snapshot.val() || [];
+          setNoticias(noticiasData);
+        });
+
+        // Limpia el listener cuando el componente se desmonta
+        return () => {
+          onValue(noticiasRef, () => {}); // Detiene el listener
+        };
       } catch (error) {
         console.error('Error fetching noticias:', error);
       }
@@ -28,16 +28,10 @@ const useNoticias = () => {
 
     fetchNoticias();
 
-    // También podrías usar `onValue` para mantener los datos actualizados en tiempo real
-    // onValue(noticiasRef, (snapshot) => {
-    //   const noticiasList = [];
-    //   snapshot.forEach((childSnapshot) => {
-    //     const noticia = childSnapshot.val();
-    //     noticiasList.push(noticia);
-    //   });
-    //   setNoticias(noticiasList);
-    // });
-
+    // Limpia el listener cuando el componente se desmonta
+    return () => {
+      onValue(ref(database, 'noticias'), () => {}); // Detiene el listener
+    };
   }, []);
 
   return noticias;
