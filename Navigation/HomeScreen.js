@@ -3,11 +3,10 @@ import { View, Text, ImageBackground, Image, FlatList, TouchableOpacity, Activit
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import UploadNoticeScreen from './UploadNoticeScreen';
 import UploadImgScreen from './UploadImgScreen';
 import EditProfileScreen from './EditProfileScreen';
-import { useNavigation } from '@react-navigation/native';
 import { getAllImages } from '../firebaseStorage'; // Asegúrate de importar correctamente
 import { database } from '../accesoFirebase'; // Asegúrate de importar correctamente
 import { ref, onValue } from 'firebase/database';
@@ -102,34 +101,23 @@ function HomeScreen() {
   const [loadingNoticias, setLoadingNoticias] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Obtener noticias usando Firebase Realtime Database
-  useEffect(() => {
+  const fetchNoticias = () => {
     const noticiasRef = ref(database, 'noticias');
     onValue(noticiasRef, (snapshot) => {
       const noticiasData = snapshot.val() || [];
-      setNoticias(Object.values(noticiasData)); // Convertir objeto de noticias en array
+      const noticiasArray = Object.values(noticiasData).sort((a, b) => b.timestamp - a.timestamp); // Ordenar noticias por timestamp
+      setNoticias(noticiasArray); // Convertir objeto de noticias en array
       setLoadingNoticias(false);
       setRefreshing(false);
-      console.log('Noticias Data:', noticiasData); // Verificar las noticias leídas desde Firebase
+      //console.log('Noticias Data:', noticiasData); // Verificar las noticias leídas desde Firebase
     }, (error) => {
       console.error('Error fetching noticias:', error);
       setLoadingNoticias(false);
       setRefreshing(false);
     });
-  }, []);
+  };
 
-  useEffect(() => {
-    fetchData(); // Cargar imágenes y noticias al inicio
-  }, []);
-
-  useEffect(() => {
-    // Actualizar imágenes y noticias cuando refreshing cambia
-    if (refreshing) {
-      fetchData();
-    }
-  }, [refreshing]);
-
-  const fetchData = async () => {
+  const fetchImages = async () => {
     try {
       const urls = await getAllImages(); // Obtener URLs de imágenes desde Firebase Storage
       setImages(urls); // Actualizar estado de imágenes
@@ -138,29 +126,20 @@ function HomeScreen() {
       console.error('Error fetching images:', error);
       setLoadingImages(false);
     }
-
-    try {
-      // Actualizar estado de noticias usando Firebase Realtime Database
-      const noticiasRef = ref(database, 'noticias');
-      onValue(noticiasRef, (snapshot) => {
-        const noticiasData = snapshot.val() || [];
-        setNoticias(Object.values(noticiasData)); // Convertir objeto de noticias en array
-        setLoadingNoticias(false);
-        setRefreshing(false);
-        console.log('Noticias Data:', noticiasData); // Verificar las noticias leídas desde Firebase
-      }, (error) => {
-        console.error('Error fetching noticias:', error);
-        setLoadingNoticias(false);
-        setRefreshing(false);
-      });
-    } catch (error) {
-      console.error('Error fetching noticias:', error);
-      setLoadingNoticias(false);
-      setRefreshing(false);
-    } finally {
-      setRefreshing(false); // Desactivar indicador de actualización
-    }
   };
+
+  useEffect(() => {
+    fetchNoticias();
+    fetchImages();
+  }, []);
+
+  useEffect(() => {
+    if (refreshing) {
+      fetchNoticias();
+      fetchImages();
+      setRefreshing(false); // Desactivar indicador de actualización después de actualizar
+    }
+  }, [refreshing]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true); // Activar indicador de actualización

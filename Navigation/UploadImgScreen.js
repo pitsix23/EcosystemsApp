@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet, Button, Alert, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, push, set } from 'firebase/database';
 import { database } from '../accesoFirebase'; // Importa tu configuración de Firebase Database
 
 function UploadImgScreen({ navigation }) {
@@ -50,8 +51,9 @@ function UploadImgScreen({ navigation }) {
       const response = await fetch(selectedImage);
       const blob = await response.blob();
 
-      const storageRef = ref(getStorage(), `images/${imageName}`);
-      const uploadTask = uploadBytesResumable(storageRef, blob);
+      const storage = getStorage();
+      const storageReference = storageRef(storage, `images/${imageName}`);
+      const uploadTask = uploadBytesResumable(storageReference, blob);
 
       uploadTask.on(
         'state_changed',
@@ -67,13 +69,14 @@ function UploadImgScreen({ navigation }) {
           getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
             console.log('File available at', downloadURL);
 
-            // Guardar la URL y la descripción en Firebase Database
+            // Guardar la URL, descripción y timestamp en Firebase Database
             const imagesRef = ref(database, 'images');
-            const newImageRef = push(imagesRef); // Otra forma de identificar cada imagen
+            const newImageRef = push(imagesRef);
 
             set(newImageRef, {
               url: downloadURL,
-              description: description // Aquí guardamos la descripción ingresada
+              description: description,
+              timestamp: Date.now()
             });
 
             setSelectedImage(null); // Actualiza el estado con la nueva URL
@@ -209,3 +212,4 @@ const styles = StyleSheet.create({
 });
 
 export default UploadImgScreen;
+  

@@ -1,8 +1,53 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { firebaseConfig } from '../accesoFirebase';
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      // Verificar que se hayan ingresado ambos campos
+      if (!email || !password) {
+        Alert.alert('Error', 'Por favor completa todos los campos.');
+        return;
+      }
+
+      // Consultar si el correo electrónico existe en Firestore
+      const q = query(collection(db, 'accounts'), where('correo', '==', email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        Alert.alert('Error', 'El correo electrónico ingresado no está registrado.');
+        return;
+      }
+
+      // Comparar la contraseña ingresada con la contraseña almacenada en Firestore
+      querySnapshot.forEach((doc) => {
+        const userData = doc.data();
+        if (userData.contraseña !== password) {
+          Alert.alert('Error', 'La contraseña ingresada es incorrecta.');
+          return;
+        }
+
+        // Si todo está correcto, navegar a la pantalla de inicio
+        navigation.navigate('HomeScreen');
+      });
+      
+    } catch (error) {
+      console.error('Error iniciando sesión:', error);
+      Alert.alert('Error', 'Hubo un problema al intentar iniciar sesión.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.halfBackground}>
@@ -14,25 +59,36 @@ function LoginScreen({ navigation }) {
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.txtSubtitulo}>Ingresar con tu cuenta</Text>
-        <TextInput placeholder='multimedios@gmail.com' style={styles.txtInput}></TextInput>
-        <TextInput placeholder='contraseña' secureTextEntry={true} style={styles.txtInput}></TextInput>
+        <TextInput
+          placeholder='Correo Electrónico'
+          style={styles.txtInput}
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextInput
+          placeholder='Contraseña'
+          secureTextEntry={true}
+          style={styles.txtInput}
+          value={password}
+          onChangeText={setPassword}
+        />
 
         <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
-          <Text style={styles.txtPass} >¿Has olvidado su contraseña?</Text>
+          <Text style={styles.txtPass}>¿Has olvidado tu contraseña?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')}>
+        <TouchableOpacity onPress={handleLogin}>
           <LinearGradient
             colors={['green', '#005B58']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.btnLogin}
           >
-            <Text style={styles.txtLogin} >Iniciar sesión</Text>
+            <Text style={styles.txtLogin}>Iniciar sesión</Text>
           </LinearGradient>
         </TouchableOpacity>
 
-        <Text style={styles.txtCuenta}>No tiene cuenta?</Text>
+        <Text style={styles.txtCuenta}>¿No tienes cuenta?</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={styles.txtRegistrarse}>Registrarse</Text>
         </TouchableOpacity>
@@ -47,7 +103,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   halfBackground: {
-    height: '50%', 
+    height: '50%',
     overflow: 'hidden',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
@@ -78,7 +134,7 @@ const styles = StyleSheet.create({
   txtSubtitulo: {
     fontSize: 20,
     color: 'gray',
-    textAlign:'center',
+    textAlign: 'center',
     marginBottom: 0,
   },
   txtInput: {

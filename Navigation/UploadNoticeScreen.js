@@ -13,7 +13,10 @@ function UploadNoticeScreen({ navigation }) {
 
     try {
       const nuevaNoticiaRef = push(textRef); // Genera una nueva clave única para la noticia
-      await set(nuevaNoticiaRef, { texto: textoNoticia }); // Guarda el texto bajo la nueva clave
+      await set(nuevaNoticiaRef, { 
+        texto: textoNoticia,
+        timestamp: Date.now() // Guarda la marca de tiempo
+      }); 
       console.log('Noticia guardada correctamente en Realtime Database.');
       setTextoNoticia(''); // Reinicia el estado del textoNoticia a una cadena vacía
       // Puedes añadir aquí la navegación o cualquier otra lógica de éxito
