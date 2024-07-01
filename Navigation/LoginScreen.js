@@ -1,44 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
 import { firebaseConfig } from '../accesoFirebase';
+import { useNavigation } from '@react-navigation/native'; // Importar useNavigation para navegación
+import UserContext from './UserContext';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-function LoginScreen({ navigation }) {
+function LoginScreen() {
+  const { setUserEmail } = useContext(UserContext);
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
     try {
-      // Verificar que se hayan ingresado ambos campos
       if (!email || !password) {
         Alert.alert('Error', 'Por favor completa todos los campos.');
         return;
       }
-
-      // Consultar si el correo electrónico existe en Firestore
+  
       const q = query(collection(db, 'accounts'), where('correo', '==', email));
       const querySnapshot = await getDocs(q);
-
+  
       if (querySnapshot.empty) {
         Alert.alert('Error', 'El correo electrónico ingresado no está registrado.');
         return;
       }
-
-      // Comparar la contraseña ingresada con la contraseña almacenada en Firestore
+  
       querySnapshot.forEach((doc) => {
         const userData = doc.data();
         if (userData.contraseña !== password) {
           Alert.alert('Error', 'La contraseña ingresada es incorrecta.');
           return;
         }
-
-        // Si todo está correcto, navegar a la pantalla de inicio
+  
+        // Navegar a HomeScreen con el parámetro userEmail
+        setUserEmail(email);
         navigation.navigate('HomeScreen');
       });
       

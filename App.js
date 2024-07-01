@@ -6,6 +6,7 @@ import HomeScreen from './Navigation/HomeScreen';
 import LoginScreen from './Navigation/LoginScreen';
 import RegisterScreen from './Navigation/RegisterScreen';
 import ResetPasswordScreen from './Navigation/ResetPasswordScreen';
+import { UserProvider } from './Navigation/UserContext'; // Importar el proveedor del contexto
 
 const Stack = createNativeStackNavigator();
 
@@ -23,20 +24,22 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-            headerTransparent: true, // Hace que el encabezado sea transparente
-            headerTintColor: '#D9D9D9', // Color de texto del encabezado en blanco
-            headerTitleStyle: {
-              fontWeight: 'bold', // Estilo del título del encabezado
-            },
-          }}>
-        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <UserProvider> 
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+              headerTransparent: true, // Hace que el encabezado sea transparente
+              headerTintColor: '#D9D9D9', // Color de texto del encabezado en blanco
+              headerTitleStyle: {
+                fontWeight: 'bold', // Estilo del título del encabezado
+              },
+            }}>
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </UserProvider>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { View, Text, ImageBackground, Image, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, RefreshControl, Dimensions } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import EditProfileScreen from './EditProfileScreen';
 import { getAllImages } from '../firebaseStorage'; // Asegúrate de importar correctamente
 import { database } from '../accesoFirebase'; // Asegúrate de importar correctamente
 import { ref, onValue } from 'firebase/database';
+import UserContext from './UserContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -95,11 +96,14 @@ function HomeStackScreen() {
 
 function HomeScreen() {
   const navigation = useNavigation();
+  const { userEmail } = useContext(UserContext);
+  console.log('User Email:', userEmail); // Obtener el correo electrónico desde las props de navegación
   const [images, setImages] = useState([]);
   const [noticias, setNoticias] = useState([]);
   const [loadingImages, setLoadingImages] = useState(true);
   const [loadingNoticias, setLoadingNoticias] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
 
   const fetchNoticias = () => {
     const noticiasRef = ref(database, 'noticias');
@@ -109,7 +113,6 @@ function HomeScreen() {
       setNoticias(noticiasArray); // Convertir objeto de noticias en array
       setLoadingNoticias(false);
       setRefreshing(false);
-      //console.log('Noticias Data:', noticiasData); // Verificar las noticias leídas desde Firebase
     }, (error) => {
       console.error('Error fetching noticias:', error);
       setLoadingNoticias(false);
@@ -190,7 +193,7 @@ function HomeScreen() {
           </View>
         </ImageBackground>
       </View>
-      <TouchableOpacity onPress={() => navigation.navigate('EditProfile')} style={styles.headerButtonContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('EditProfile', { userEmail })} style={styles.headerButtonContainer}>
         <MaterialCommunityIcons name="cog" size={30} color="white" />
       </TouchableOpacity>
       <View style={styles.contentContainer}>
