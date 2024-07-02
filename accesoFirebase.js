@@ -25,7 +25,6 @@ const database = getDatabase(app);
 const storage = getStorage(app);
 const db = getFirestore(app);
 
-// Verificar soporte de analytics
 isSupported().then(supported => {
   if (supported) {
     const analytics = getAnalytics(app);

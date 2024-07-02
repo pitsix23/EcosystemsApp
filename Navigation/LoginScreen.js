@@ -4,10 +4,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
 import { firebaseConfig } from '../accesoFirebase';
-import { useNavigation } from '@react-navigation/native'; // Importar useNavigation para navegación
+import { useNavigation } from '@react-navigation/native'; 
 import UserContext from './UserContext';
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -38,8 +37,6 @@ function LoginScreen() {
           Alert.alert('Error', 'La contraseña ingresada es incorrecta.');
           return;
         }
-  
-        // Navegar a HomeScreen con el parámetro userEmail
         setUserEmail(email);
         navigation.navigate('HomeScreen');
       });

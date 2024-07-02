@@ -1,28 +1,28 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { getDatabase, ref, push, set } from 'firebase/database'; // Importa las funciones necesarias de Firebase Database
-import { app } from '../accesoFirebase'; // Ajusta la ruta según sea necesario
+import { getDatabase, ref, push, set } from 'firebase/database'; 
+import { app } from '../accesoFirebase'; 
 
 function UploadNoticeScreen({ navigation }) {
   const [textoNoticia, setTextoNoticia] = useState('');
 
   const guardarTexto = async () => {
     const db = getDatabase(app);
-    const textRef = ref(db, 'noticias'); // Nodo donde guardarás las noticias, ajusta según tu estructura
+    const textRef = ref(db, 'noticias'); 
 
     try {
-      const nuevaNoticiaRef = push(textRef); // Genera una nueva clave única para la noticia
+      const nuevaNoticiaRef = push(textRef); 
       await set(nuevaNoticiaRef, { 
         texto: textoNoticia,
-        timestamp: Date.now() // Guarda la marca de tiempo
+        timestamp: Date.now() 
       }); 
       console.log('Noticia guardada correctamente en Realtime Database.');
-      setTextoNoticia(''); // Reinicia el estado del textoNoticia a una cadena vacía
-      // Puedes añadir aquí la navegación o cualquier otra lógica de éxito
+      setTextoNoticia(''); 
+      
     } catch (error) {
       console.error('Error al guardar la noticia en Realtime Database:', error);
-      // Manejo de errores
     }
   };
 
@@ -30,10 +30,8 @@ function UploadNoticeScreen({ navigation }) {
     try {
       await guardarTexto();
       console.log('Noticia guardada correctamente.');
-      // Puedes añadir aquí la navegación o cualquier otra lógica de éxito
     } catch (error) {
       console.error('Error al guardar la noticia:', error);
-      // Manejo de errores
     }
   };
 
@@ -62,7 +60,14 @@ function UploadNoticeScreen({ navigation }) {
           numberOfLines={4}
         />
         <TouchableOpacity style={styles.button} onPress={handleGuardarNoticia}>
-          <Text style={styles.buttonText}>Guardar Noticia</Text>
+          <LinearGradient
+            colors={['#00C164', '#005B58']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.btnLogin}
+          >
+            <Text style={styles.txtLogin}>Guardar noticia</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
@@ -75,18 +80,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'grey',
   },
   halfBackground: {
-    height: '10%', // Mostrar solo la mitad
-    overflow: 'hidden', // Ocultar el resto de la imagen
-    borderBottomLeftRadius: 20, // Borde redondeado inferior izquierdo
-    borderBottomRightRadius: 20, // Borde redondeado inferior derecho
+    height: '10%', 
+    overflow: 'hidden', 
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20, 
   },
   backgroundImage: {
     flex: 1,
     resizeMode: 'cover',
   },
   imageStyle: {
-    borderBottomLeftRadius: 20, // Borde redondeado inferior izquierdo
-    borderBottomRightRadius: 20, // Borde redondeado inferior derecho
+    borderBottomLeftRadius: 20, 
+    borderBottomRightRadius: 20, 
   },
   overlay: {
     flex: 1,
@@ -137,18 +142,19 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 20,
   },
-  button: {
-    backgroundColor: '#007BFF',
-    borderRadius: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    width: '100%',
+  
+  btnLogin: {
+    borderRadius: 30,
+    width: 219,
+    height: 53,
+    marginTop: 25,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
+  txtLogin: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

@@ -15,20 +15,18 @@ const ResetPasswordScreen = ({ navigation }) => {
     }
 
     try {
-      // Generar una contraseña aleatoria (en este caso, una cadena de 6 dígitos)
       const newPassword = Math.random().toString(36).substring(2, 8);
 
-      // Actualizar la contraseña en Firestore
-      const colRef = collection(db, 'accounts'); // Reemplaza 'accounts' con el nombre de tu colección
-      const q = query(colRef, where('correo', '==', emailAddress)); // Ajusta 'correo' según el campo donde se almacena el correo electrónico
+      const colRef = collection(db, 'accounts'); 
+      const q = query(colRef, where('correo', '==', emailAddress)); 
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const docRef = querySnapshot.docs[0].ref;
-        await updateDoc(docRef, { contraseña: newPassword, confirmContraseña: newPassword }); // Asegúrate de que el campo en Firestore sea 'contraseña'
+        await updateDoc(docRef, { contraseña: newPassword, confirmContraseña: newPassword }); 
         setUserEmail(emailAddress);
         Alert.alert('Contraseña Actualizada', 'Se ha enviado una nueva contraseña a tu correo electrónico.', [
-          { text: 'OK', onPress: () => navigation.navigate('UpdtPassword') } // Navegar de vuelta cuando se presiona OK
+          { text: 'OK', onPress: () => navigation.navigate('UpdtPassword') } 
         ]);
       } else {
         Alert.alert('Error', 'No se encontró ninguna cuenta asociada a este correo electrónico.');

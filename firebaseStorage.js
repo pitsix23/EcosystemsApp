@@ -9,7 +9,6 @@ const getAllImages = async () => {
     const urls = await Promise.all(
       res.items.map(async (itemRef) => {
         const url = await getDownloadURL(itemRef);
-        //console.log('URL obtenida:', url);
         return url;
       })
     );

@@ -8,30 +8,27 @@ import UserContext from './UserContext';
 const  UpdtPasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const { userEmail } = useContext(UserContext); // Obtener el correo electrónico desde las props de navegación
+  const { userEmail } = useContext(UserContext);
   console.log('User Email:', userEmail);
   const handleUpdatePassword = async () => {
     try {
-      // Verificar la contraseña actual antes de actualizar
       const colRef = collection(db, 'accounts');
-      const q = query(colRef, where('correo', '==', userEmail)); // Ajusta según tu estructura de datos
+      const q = query(colRef, where('correo', '==', userEmail)); 
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
-        const storedPassword = userData.contraseña; // Ajusta según el campo donde se almacena la contraseña
+        const storedPassword = userData.contraseña; 
 
         if (currentPassword !== storedPassword) {
           Alert.alert('Error', 'La contraseña actual no es válida.');
           return;
         }
-
-        // Actualizar la contraseña en Firestore
         const docRef = querySnapshot.docs[0].ref;
-        await updateDoc(docRef, { contraseña: newPassword, confirmContraseña: newPassword }); // Ajusta según tu estructura de datos
+        await updateDoc(docRef, { contraseña: newPassword, confirmContraseña: newPassword }); 
 
         Alert.alert('Contraseña actualizada', 'Tu contraseña ha sido actualizada correctamente.');
-        navigation.navigate('Login'); // Regresar a la pantalla anterior después de actualizar
+        navigation.navigate('Login');
       } else {
         Alert.alert('Error', 'No se encontró ninguna cuenta asociada a este correo electrónico.');
       }

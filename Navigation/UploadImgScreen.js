@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Image, StyleSheet, Button, Alert, TextInput } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { ref, push, set } from 'firebase/database';
-import { database } from '../accesoFirebase'; // Importa tu configuración de Firebase Database
+import { database } from '../accesoFirebase';
 
 function UploadImgScreen({ navigation }) {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -69,7 +70,6 @@ function UploadImgScreen({ navigation }) {
           getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
             console.log('File available at', downloadURL);
 
-            // Guardar la URL, descripción y timestamp en Firebase Database
             const imagesRef = ref(database, 'images');
             const newImageRef = push(imagesRef);
 
@@ -79,8 +79,8 @@ function UploadImgScreen({ navigation }) {
               timestamp: Date.now()
             });
 
-            setSelectedImage(null); // Actualiza el estado con la nueva URL
-            setDescription(''); // Limpia el campo de descripción
+            setSelectedImage(null); 
+            setDescription(''); 
             Alert.alert('Imagen subida con éxito');
           });
         }
@@ -118,10 +118,28 @@ function UploadImgScreen({ navigation }) {
                 onChangeText={text => setDescription(text)}
                 value={description}
               />
-              <Button title="Subir Imagen a Firebase" onPress={uploadImageToFirebase} />
+              <TouchableOpacity onPress={uploadImageToFirebase}>
+                <LinearGradient
+                  colors={['#00C164', '#005B58']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.btnLogin}
+                >
+                  <Text style={styles.txtLogin}>Postear</Text>
+                </LinearGradient>
+              </TouchableOpacity>
             </>
           ) : (
-            <Button title="Seleccionar Imagen" onPress={openImagePickerAsync} />
+            <TouchableOpacity onPress={openImagePickerAsync}>
+              <LinearGradient
+                colors={['#00C164', '#005B58']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.btnLogin}
+              >
+                <Text style={styles.txtLogin}>Seleccionar imagen</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -208,6 +226,19 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     paddingHorizontal: 10,
     marginBottom: 10,
+  },
+  btnLogin: {
+    borderRadius: 30,
+    width: 219,
+    height: 53,
+    marginTop: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  txtLogin: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

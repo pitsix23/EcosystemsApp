@@ -5,7 +5,6 @@ import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { firebaseConfig } from '../accesoFirebase';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -17,7 +16,6 @@ export default function RegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     try {
-      // Validación básica de campos
       if (!name || !email || !password || !confirmPassword) {
         Alert.alert('Error', 'Por favor completa todos los campos.');
         return;
@@ -27,8 +25,6 @@ export default function RegisterScreen({ navigation }) {
         Alert.alert('Error', 'Las contraseñas no coinciden.');
         return;
       }
-
-      // Guardar datos del usuario en Firestore
       const docRef = await addDoc(collection(db, 'accounts'), {
         nombre: name,
         correo: email,

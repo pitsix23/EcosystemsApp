@@ -7,9 +7,10 @@ import { useNavigation } from '@react-navigation/native';
 import UploadNoticeScreen from './UploadNoticeScreen';
 import UploadImgScreen from './UploadImgScreen';
 import EditProfileScreen from './EditProfileScreen';
-import { getAllImages } from '../firebaseStorage'; // Asegúrate de importar correctamente
-import { database } from '../accesoFirebase'; // Asegúrate de importar correctamente
+import DetalleNoticiaScreen from './DetalleNoticiaScreen';
+import DetalleImagenScreen from './DetalleImagenScreen';
 import { ref, onValue } from 'firebase/database';
+import { database } from '../accesoFirebase'; 
 import UserContext from './UserContext';
 
 const Tab = createBottomTabNavigator();
@@ -85,11 +86,14 @@ function HomeStackScreen() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="HomeScreen" component={HomeScreen} />
-      <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Editar Perfil' }} />
+        headerTransparent: true,
+        headerTintColor: '#000',
+      }}>
+      <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: '' }} />
+      <Stack.Screen name="DetalleImagen" component={DetalleImagenScreen} options={{ title: '' }} />
+      <Stack.Screen name="DetalleNoticia" component={DetalleNoticiaScreen} options={{ title: '' }} />
+
     </Stack.Navigator>
   );
 }
@@ -97,20 +101,19 @@ function HomeStackScreen() {
 function HomeScreen() {
   const navigation = useNavigation();
   const { userEmail } = useContext(UserContext);
-  console.log('User Email:', userEmail); // Obtener el correo electrónico desde las props de navegación
+  console.log('User Email:', userEmail);
   const [images, setImages] = useState([]);
   const [noticias, setNoticias] = useState([]);
   const [loadingImages, setLoadingImages] = useState(true);
   const [loadingNoticias, setLoadingNoticias] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-
   const fetchNoticias = () => {
     const noticiasRef = ref(database, 'noticias');
     onValue(noticiasRef, (snapshot) => {
       const noticiasData = snapshot.val() || [];
-      const noticiasArray = Object.values(noticiasData).sort((a, b) => b.timestamp - a.timestamp); // Ordenar noticias por timestamp
-      setNoticias(noticiasArray); // Convertir objeto de noticias en array
+      const noticiasArray = Object.values(noticiasData).sort((a, b) => b.timestamp - a.timestamp); 
+      setNoticias(noticiasArray); 
       setLoadingNoticias(false);
       setRefreshing(false);
     }, (error) => {
@@ -121,14 +124,19 @@ function HomeScreen() {
   };
 
   const fetchImages = async () => {
-    try {
-      const urls = await getAllImages(); // Obtener URLs de imágenes desde Firebase Storage
-      setImages(urls); // Actualizar estado de imágenes
+    const imagesRef = ref(database, 'images');
+    onValue(imagesRef, (snapshot) => {
+      const imagesData = snapshot.val() || [];
+      const imagesArray = Object.keys(imagesData).map(key => ({
+        ...imagesData[key],
+        key
+      })).sort((a, b) => b.timestamp - a.timestamp); 
+      setImages(imagesArray);
       setLoadingImages(false);
-    } catch (error) {
+    }, (error) => {
       console.error('Error fetching images:', error);
       setLoadingImages(false);
-    }
+    });
   };
 
   useEffect(() => {
@@ -140,27 +148,28 @@ function HomeScreen() {
     if (refreshing) {
       fetchNoticias();
       fetchImages();
-      setRefreshing(false); // Desactivar indicador de actualización después de actualizar
+      setRefreshing(false);
     }
   }, [refreshing]);
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true); // Activar indicador de actualización
+    setRefreshing(true);
   }, []);
 
   const renderItem = ({ item }) => {
     if (item.type === 'image') {
       return (
-        <TouchableOpacity onPress={() => navigation.navigate('DetalleImagen', { image: item })}>
-          <Image source={{ uri: item.uri }} style={styles.item} />
+        <TouchableOpacity onPress={() => navigation.navigate('DetalleImagen', { image: item })} style={styles.item}>
+          <Image source={{ uri: item.url }} style={styles.image} />
+          {item.description && (
+            <Text style={styles.imageDescription}>{item.description}</Text>
+          )}
         </TouchableOpacity>
       );
     } else if (item.type === 'noticia') {
       return (
-        <TouchableOpacity onPress={() => navigation.navigate('DetalleNoticia', { noticia: item })}>
-          <View style={styles.item}>
-            <Text style={styles.noticiaText}>{item.texto}</Text>
-          </View>
+        <TouchableOpacity onPress={() => navigation.navigate('DetalleNoticia', { noticia: item })} style={styles.item}>
+          <Text style={styles.noticiaText}>{item.texto}</Text>
         </TouchableOpacity>
       );
     }
@@ -168,11 +177,11 @@ function HomeScreen() {
   };
 
   if (loadingImages || loadingNoticias) {
-    return <ActivityIndicator size= "large" style={styles.iActivity}/>;
+    return <ActivityIndicator size="large" style={styles.iActivity} />;
   }
 
   const dataToShow = [
-    ...images.map(image => ({ type: 'image', uri: image })), // Asegurarse de que el campo `uri` coincida con las URLs válidas
+    ...images.map(image => ({ type: 'image', ...image })),
     ...noticias.map(noticia => ({ type: 'noticia', ...noticia })),
   ];
 
@@ -193,7 +202,7 @@ function HomeScreen() {
           </View>
         </ImageBackground>
       </View>
-      <TouchableOpacity onPress={() => navigation.navigate('EditProfile', { userEmail })} style={styles.headerButtonContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('EditProfile', { userEmail })} style={styles.settingsButton}>
         <MaterialCommunityIcons name="cog" size={30} color="white" />
       </TouchableOpacity>
       <View style={styles.contentContainer}>
@@ -203,7 +212,7 @@ function HomeScreen() {
         data={dataToShow}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
-        numColumns={2} // Mostrar en 2 columnas
+        numColumns={2}
         contentContainerStyle={styles.flatListContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         style={styles.flatList}
@@ -260,36 +269,59 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     top: -20,
   },
-  flatListContent: {
-    paddingBottom: 80, // Ajustar según sea necesario
-  },
   iActivity:{
     color:"#00C164",
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  settingsButton: {
+    position: 'absolute',
+    top: 37,
+    right: 20,
+  },
+  flatListContainer: {
+    paddingHorizontal: 10,
+    paddingTop: 10,
+  },
+  flatListContent: {
+    paddingBottom: 80, 
+  },
   item: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
-    overflow: 'hidden',
+    marginBottom: 10,
+    elevation: 4,
     marginVertical: 5,
     marginHorizontal: 5,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: Dimensions.get('window').width / 2 - 15, // Ajustar ancho del elemento según tamaño de la pantalla
-    height: Dimensions.get('window').width / 2 - 15, // Ajustar alto del elemento según tamaño de la pantalla
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    width: Dimensions.get('window').width / 2 - 15,
+  },
+  image: {
+    width: '100%',
+    height: Dimensions.get('window').width / 2 - 15,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    resizeMode: 'cover',
+  },
+  imageDescription: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    fontSize: 14,
+    textAlign: 'center',
   },
   noticiaText: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     fontSize: 16,
     textAlign: 'justify',
-    paddingHorizontal: 10,
   },
   flatList: {
     flex: 1,
-    marginLeft:5,
+    marginLeft: 5,
   },
 });
 
