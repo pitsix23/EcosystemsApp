@@ -68,7 +68,7 @@ const  UpdtPasswordScreen = ({ navigation }) => {
         />
         <TouchableOpacity onPress={handleUpdatePassword}>
           <LinearGradient
-            colors={['#871F1F', '#837B7B']}
+            colors={['#00C164', '#005B58']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.button}

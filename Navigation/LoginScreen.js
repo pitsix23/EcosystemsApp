@@ -81,7 +81,7 @@ function LoginScreen() {
 
         <TouchableOpacity onPress={handleLogin}>
           <LinearGradient
-            colors={['green', '#005B58']}
+            colors={['#00C164', '#005B58']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.btnLogin}

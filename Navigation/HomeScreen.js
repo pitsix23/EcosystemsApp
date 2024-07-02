@@ -168,7 +168,7 @@ function HomeScreen() {
   };
 
   if (loadingImages || loadingNoticias) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return <ActivityIndicator size= "large" style={styles.iActivity}/>;
   }
 
   const dataToShow = [
@@ -263,6 +263,12 @@ const styles = StyleSheet.create({
   flatListContent: {
     paddingBottom: 80, // Ajustar según sea necesario
   },
+  iActivity:{
+    color:"#00C164",
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   item: {
     backgroundColor: '#fff',
     borderRadius: 8,
@@ -283,6 +289,7 @@ const styles = StyleSheet.create({
   },
   flatList: {
     flex: 1,
+    marginLeft:5,
   },
 });
 

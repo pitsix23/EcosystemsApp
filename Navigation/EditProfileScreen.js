@@ -99,14 +99,10 @@ const EditProfileScreen = ({ navigation }) => {
           value={name}
           onChangeText={setName}
         />
-        <TextInput
+        <Text style={styles.eInput} 
           placeholder='Correo Electrónico'
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          keyboardType='email-address'
           autoCapitalize='none'
-        />
+        >{email}</Text>
         <TextInput
           placeholder='Contraseña actual'
           style={styles.input}
@@ -134,7 +130,7 @@ const EditProfileScreen = ({ navigation }) => {
 
         <TouchableOpacity onPress={handleUpdateProfile}>
           <LinearGradient
-            colors={['#871F1F', '#837B7B']}
+            colors={['#00C164', '#005B58']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.button}
@@ -199,6 +195,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     color: '#333',
   },
+  eInput: {
+    width: '100%',
+    height: 50,
+    paddingVertical:15,
+    borderColor: '#D9D9D9',
+    borderWidth: 1,
+    paddingLeft: 20,
+    borderRadius: 30,
+    marginBottom: 20,
+    backgroundColor: '#F5F5F5',
+    color: '#333',
+  },
   txtPass: {
     textAlign: 'center',
     color: 'green',
@@ -214,7 +222,7 @@ const styles = StyleSheet.create({
     height: 53,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   buttonText: {
     color: '#fff',
