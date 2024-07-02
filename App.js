@@ -6,6 +6,7 @@ import HomeScreen from './Navigation/HomeScreen';
 import LoginScreen from './Navigation/LoginScreen';
 import RegisterScreen from './Navigation/RegisterScreen';
 import ResetPasswordScreen from './Navigation/ResetPasswordScreen';
+import UpdtPasswordScreen from './Navigation/UpdtPasswordScreen';
 import { UserProvider } from './Navigation/UserContext'; // Importar el proveedor del contexto
 
 const Stack = createNativeStackNavigator();
@@ -28,15 +29,13 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{
-              headerTransparent: true, // Hace que el encabezado sea transparente
-              headerTintColor: '#D9D9D9', // Color de texto del encabezado en blanco
-              headerTitleStyle: {
-                fontWeight: 'bold', // Estilo del título del encabezado
-              },
+              headerTransparent: true, 
+              headerTintColor: '#000', 
             }}>
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ headerTitle: '' }} />
+          <Stack.Screen name="UpdtPassword" component={UpdtPasswordScreen} options={{ headerTitle: '' }}/>
+          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerTitle: '' }}/>
           <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>

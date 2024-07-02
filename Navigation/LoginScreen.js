@@ -101,7 +101,7 @@ function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#D9D9D9',
     flex: 1,
   },
   halfBackground: {
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   formContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 10,
-    padding: 10,
+    padding: 20,
     marginTop: -155,
     alignItems: 'center',
   },

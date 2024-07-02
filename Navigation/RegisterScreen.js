@@ -99,41 +99,34 @@ export default function RegisterScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D9D9D9', // Cambia el color de fondo si es necesario
+    backgroundColor: '#D9D9D9', 
   },
   halfBackground: {
-    height: '50%', // Mostrar solo la mitad
-    overflow: 'hidden', // Ocultar el resto de la imagen
-    borderBottomLeftRadius: 30, // Borde redondeado inferior izquierdo
-    borderBottomRightRadius: 30, // Borde redondeado inferior derecho
+    height: '50%', 
+    overflow: 'hidden', 
+    borderBottomLeftRadius: 30, 
+    borderBottomRightRadius: 30, 
   },
   backgroundImage: {
     flex: 1,
     resizeMode: 'cover',
   },
   imageStyle: {
-    borderBottomLeftRadius: 30, // Borde redondeado inferior izquierdo
-    borderBottomRightRadius: 30, // Borde redondeado inferior derecho
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Fondo semi-transparente
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    padding: 20,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
   formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fondo semi-transparente blanco
+    backgroundColor: 'rgba(255, 255, 255, 0.8)', 
     borderRadius: 10,
     padding: 20,
-    marginTop: -175, // Ajuste para alinear con la parte superior del fondo
+    marginTop: -175, 
     alignItems: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#000',
+    color: '#837B7B',
     marginBottom: 20,
   },
   input: {
@@ -168,10 +161,10 @@ const styles = StyleSheet.create({
   },
   topRightImage: {
     position: 'absolute',
-    top: 20,
-    right: 20,
-    width: 180, // Ajusta el tamaño según sea necesario
-    height: 180, // Ajusta el tamaño según sea necesario
+    top: 8,
+    right: 0,
+    width: 180, 
+    height: 180,
     resizeMode: 'contain',
   },
 });

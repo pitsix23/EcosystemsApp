@@ -1,40 +1,42 @@
-import React, { useState, useContext  } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../accesoFirebase';
 import UserContext from './UserContext';
 
-const ResetPasswordScreen = ({ navigation }) => {
-  const [emailAddress, setEmailAddress] = useState('');
-  const { setUserEmail } = useContext(UserContext);
-  const handleSendEmail = async () => {
-    if (emailAddress.trim() === '') {
-      Alert.alert('Error', 'Por favor ingresa un correo electrónico válido.');
-      return;
-    }
-
+const  UpdtPasswordScreen = ({ navigation }) => {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const { userEmail } = useContext(UserContext); // Obtener el correo electrónico desde las props de navegación
+  console.log('User Email:', userEmail);
+  const handleUpdatePassword = async () => {
     try {
-      // Generar una contraseña aleatoria (en este caso, una cadena de 6 dígitos)
-      const newPassword = Math.random().toString(36).substring(2, 8);
-
-      // Actualizar la contraseña en Firestore
-      const colRef = collection(db, 'accounts'); // Reemplaza 'accounts' con el nombre de tu colección
-      const q = query(colRef, where('correo', '==', emailAddress)); // Ajusta 'correo' según el campo donde se almacena el correo electrónico
+      // Verificar la contraseña actual antes de actualizar
+      const colRef = collection(db, 'accounts');
+      const q = query(colRef, where('correo', '==', userEmail)); // Ajusta según tu estructura de datos
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+        const storedPassword = userData.contraseña; // Ajusta según el campo donde se almacena la contraseña
+
+        if (currentPassword !== storedPassword) {
+          Alert.alert('Error', 'La contraseña actual no es válida.');
+          return;
+        }
+
+        // Actualizar la contraseña en Firestore
         const docRef = querySnapshot.docs[0].ref;
-        await updateDoc(docRef, { contraseña: newPassword, confirmContraseña: newPassword }); // Asegúrate de que el campo en Firestore sea 'contraseña'
-        setUserEmail(emailAddress);
-        Alert.alert('Contraseña Actualizada', 'Se ha enviado una nueva contraseña a tu correo electrónico.', [
-          { text: 'OK', onPress: () => navigation.navigate('UpdtPassword') } // Navegar de vuelta cuando se presiona OK
-        ]);
+        await updateDoc(docRef, { contraseña: newPassword, confirmContraseña: newPassword }); // Ajusta según tu estructura de datos
+
+        Alert.alert('Contraseña actualizada', 'Tu contraseña ha sido actualizada correctamente.');
+        navigation.navigate('Login'); // Regresar a la pantalla anterior después de actualizar
       } else {
         Alert.alert('Error', 'No se encontró ninguna cuenta asociada a este correo electrónico.');
       }
     } catch (error) {
-      console.error('Error al actualizar la contraseña en Firestore:', error);
+      console.error('Error al actualizar la contraseña:', error);
       Alert.alert('Error', 'Hubo un problema al actualizar la contraseña.');
     }
   };
@@ -49,27 +51,35 @@ const ResetPasswordScreen = ({ navigation }) => {
         </ImageBackground>
       </View>
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Restablecer Contraseña</Text>
+        <Text style={styles.title}>Actualizar Contraseña</Text>
         <TextInput
-          placeholder='Correo Electrónico'
+          placeholder="Contraseña Actual"
           style={styles.input}
-          value={emailAddress}
-          onChangeText={setEmailAddress}
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+          secureTextEntry={true}
         />
-        <TouchableOpacity onPress={handleSendEmail}>
+        <TextInput
+          placeholder="Nueva Contraseña"
+          style={styles.input}
+          value={newPassword}
+          onChangeText={setNewPassword}
+          secureTextEntry={true}
+        />
+        <TouchableOpacity onPress={handleUpdatePassword}>
           <LinearGradient
             colors={['#871F1F', '#837B7B']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.button}
           >
-            <Text style={styles.buttonText}>Restablecer</Text>
+            <Text style={styles.buttonText}>Actualizar Contraseña</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -143,4 +153,4 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 });
-export default ResetPasswordScreen;
+export default UpdtPasswordScreen;

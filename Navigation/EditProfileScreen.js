@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet, Alert } from 'react-native';
-import { getFirestore, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { LinearGradient } from 'expo-linear-gradient';
+import { collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
+import { db } from '../accesoFirebase';
 import UserContext from './UserContext';
-import  {db}  from '../accesoFirebase';
-
-// Initialize Firebase
-//const app = initializeApp(firebaseConfig);
-//const db = getFirestore(app);
 
 const EditProfileScreen = ({ navigation }) => {
   const { userEmail } = useContext(UserContext); // Obtener el correo electrónico desde las props de navegación
   console.log('User Email:', userEmail);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +26,6 @@ const EditProfileScreen = ({ navigation }) => {
           const userData = querySnapshot.docs[0].data();
           setName(userData.nombre);
           setEmail(userData.correo);
-          // Verificar si userData.edad está definido antes de asignarlo
           if (userData.edad !== undefined) {
             setAge(userData.edad.toString());
           }
@@ -44,7 +40,6 @@ const EditProfileScreen = ({ navigation }) => {
   
     fetchUserProfile();
   }, [userEmail]);
-  
 
   const handleUpdateProfile = async () => {
     try {
@@ -52,16 +47,32 @@ const EditProfileScreen = ({ navigation }) => {
       const colRef = collection(db, 'accounts');
       const q = query(colRef, where('correo', '==', userEmail));
       const querySnapshot = await getDocs(q);
-
+      const userData = querySnapshot.docs[0].data();
       if (!querySnapshot.empty) {
         const docRef = querySnapshot.docs[0].ref;
-        await updateDoc(docRef, {
+        const storedPassword = userData.contraseña;
+        if (currentPassword !== storedPassword) {
+          Alert.alert('Error', 'La contraseña actual no es válida.');
+          return;
+        }
+
+        // Crear un objeto de actualización que solo incluya la contraseña si se ha proporcionado
+        const updatedData = {
           nombre: name,
           correo: email,
           edad: parseInt(age),
-        });
+        };
 
-        Alert.alert('Perfil actualizado', 'Los datos del perfil se han actualizado correctamente.');
+        if (password.trim() !== '') {
+          updatedData.contraseña = password;
+          updatedData.confirmContraseña = password;
+        }
+
+        await updateDoc(docRef, updatedData);
+
+        Alert.alert('Perfil actualizado', 'Los datos del perfil se han actualizado correctamente.', [
+          { text: 'OK', onPress: () => navigation.goBack() } // Navegar de vuelta cuando se presiona OK
+        ]);
       } else {
         Alert.alert('Error', 'No se encontraron datos de perfil para este usuario.');
       }
@@ -70,6 +81,7 @@ const EditProfileScreen = ({ navigation }) => {
       Alert.alert('Error', 'Hubo un problema al actualizar el perfil.');
     }
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.halfBackground}>
@@ -96,12 +108,22 @@ const EditProfileScreen = ({ navigation }) => {
           autoCapitalize='none'
         />
         <TextInput
+          placeholder='Contraseña actual'
+          style={styles.input}
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+          secureTextEntry={true}
+        />
+        <TextInput
           placeholder='Nueva Contraseña'
           style={styles.input}
           value={password}
           onChangeText={setPassword}
           secureTextEntry={true}
         />
+        <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
+          <Text style={styles.txtPass}>¿Has olvidado tu contraseña?</Text>
+        </TouchableOpacity>
         <TextInput
           placeholder='Edad'
           style={styles.input}
@@ -144,13 +166,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30, // Borde redondeado inferior izquierdo
     borderBottomRightRadius: 30, // Borde redondeado inferior derecho
   },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // Fondo semi-transparente
-    justifyContent: 'flex-start',
-    alignItems: 'flex-end',
-    padding: 20,
-  },
   logoImage: {
     position: 'absolute',
     top: 22,
@@ -184,6 +199,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     color: '#333',
   },
+  txtPass: {
+    textAlign: 'center',
+    color: 'green',
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginTop: -10,
+    margin: 10,
+    textDecorationLine: 'underline',
+  },
   button: {
     borderRadius: 30,
     width: 219,
@@ -200,4 +224,3 @@ const styles = StyleSheet.create({
 });
 
 export default EditProfileScreen;
-
