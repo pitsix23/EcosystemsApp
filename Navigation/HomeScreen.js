@@ -102,53 +102,62 @@ function HomeScreen() {
   const navigation = useNavigation();
   const { userEmail } = useContext(UserContext);
   console.log('User Email:', userEmail);
-  const [images, setImages] = useState([]);
-  const [noticias, setNoticias] = useState([]);
-  const [loadingImages, setLoadingImages] = useState(true);
-  const [loadingNoticias, setLoadingNoticias] = useState(true);
+  const [dataToShow, setDataToShow] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchNoticias = () => {
+  const fetchData = () => {
     const noticiasRef = ref(database, 'noticias');
-    onValue(noticiasRef, (snapshot) => {
-      const noticiasData = snapshot.val() || [];
-      const noticiasArray = Object.values(noticiasData).sort((a, b) => b.timestamp - a.timestamp); 
-      setNoticias(noticiasArray); 
-      setLoadingNoticias(false);
-      setRefreshing(false);
-    }, (error) => {
-      console.error('Error fetching noticias:', error);
-      setLoadingNoticias(false);
-      setRefreshing(false);
-    });
-  };
-
-  const fetchImages = async () => {
     const imagesRef = ref(database, 'images');
-    onValue(imagesRef, (snapshot) => {
-      const imagesData = snapshot.val() || [];
-      const imagesArray = Object.keys(imagesData).map(key => ({
-        ...imagesData[key],
-        key
-      })).sort((a, b) => b.timestamp - a.timestamp); 
-      setImages(imagesArray);
-      setLoadingImages(false);
-    }, (error) => {
-      console.error('Error fetching images:', error);
-      setLoadingImages(false);
+
+    Promise.all([
+      new Promise((resolve, reject) => {
+        onValue(noticiasRef, (snapshot) => {
+          const noticiasData = snapshot.val() || [];
+          const noticiasArray = Object.values(noticiasData).map(noticia => ({ ...noticia, type: 'noticia' }));
+          resolve(noticiasArray);
+        }, (error) => {
+          console.error('Error fetching noticias:', error);
+          reject(error);
+        });
+      }),
+      new Promise((resolve, reject) => {
+        onValue(imagesRef, (snapshot) => {
+          const imagesData = snapshot.val() || [];
+          const imagesArray = Object.keys(imagesData).map(key => ({
+            ...imagesData[key],
+            key,
+            type: 'image'
+          }));
+          resolve(imagesArray);
+        }, (error) => {
+          console.error('Error fetching images:', error);
+          reject(error);
+        });
+      })
+    ]).then(([noticiasArray, imagesArray]) => {
+      // Combine and sort by timestamp
+      const combinedArray = [...imagesArray, ...noticiasArray];
+      combinedArray.sort((a, b) => b.timestamp - a.timestamp); 
+      
+      // Set state
+      setDataToShow(combinedArray);
+      setLoading(false);
+      setRefreshing(false);
+    }).catch((error) => {
+      console.error('Error fetching data:', error);
+      setLoading(false);
+      setRefreshing(false);
     });
   };
 
   useEffect(() => {
-    fetchNoticias();
-    fetchImages();
+    fetchData();
   }, []);
 
   useEffect(() => {
     if (refreshing) {
-      fetchNoticias();
-      fetchImages();
-      setRefreshing(false);
+      fetchData();
     }
   }, [refreshing]);
 
@@ -159,7 +168,7 @@ function HomeScreen() {
   const renderItem = ({ item }) => {
     if (item.type === 'image') {
       return (
-        <TouchableOpacity onPress={() => navigation.navigate('DetalleImagen', { image: item })} style={styles.item}>
+        <TouchableOpacity onPress={() => navigation.navigate('DetalleImagen', { image: item })} style={styles.imageItem}>
           <Image source={{ uri: item.url }} style={styles.image} />
           {item.description && (
             <Text style={styles.imageDescription}>{item.description}</Text>
@@ -168,7 +177,7 @@ function HomeScreen() {
       );
     } else if (item.type === 'noticia') {
       return (
-        <TouchableOpacity onPress={() => navigation.navigate('DetalleNoticia', { noticia: item })} style={styles.item}>
+        <TouchableOpacity onPress={() => navigation.navigate('DetalleNoticia', { noticia: item })} style={styles.noticiaItem}>
           <Text style={styles.noticiaText}>{item.texto}</Text>
         </TouchableOpacity>
       );
@@ -176,14 +185,9 @@ function HomeScreen() {
     return null;
   };
 
-  if (loadingImages || loadingNoticias) {
-    return <ActivityIndicator size="large" style={styles.iActivity} />;
+  if (loading) {
+    return <ActivityIndicator size="large" style={styles.activityIndicator} />;
   }
-
-  const dataToShow = [
-    ...images.map(image => ({ type: 'image', ...image })),
-    ...noticias.map(noticia => ({ type: 'noticia', ...noticia })),
-  ];
 
   if (dataToShow.length === 0) {
     return (
@@ -212,7 +216,6 @@ function HomeScreen() {
         data={dataToShow}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
-        numColumns={2}
         contentContainerStyle={styles.flatListContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         style={styles.flatList}
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'grey',
   },
   halfBackground: {
-    height: '10%',
+    height: Dimensions.get('window').height * 0.1,
     overflow: 'hidden',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -245,11 +248,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
     padding: 20,
-  },
-  headerButtonContainer: {
-    position: 'absolute',
-    top: 37,
-    right: 20,
   },
   logoImage: {
     position: 'absolute',
@@ -269,8 +267,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     top: -20,
   },
-  iActivity:{
-    color:"#00C164",
+  activityIndicator: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -280,14 +277,11 @@ const styles = StyleSheet.create({
     top: 37,
     right: 20,
   },
-  flatListContainer: {
-    paddingHorizontal: 10,
-    paddingTop: 10,
-  },
   flatListContent: {
-    paddingBottom: 80, 
+    paddingBottom: 80,
   },
-  item: {
+  imageItem: {
+    flex: 1,
     backgroundColor: '#ffffff',
     borderRadius: 8,
     marginBottom: 10,
@@ -298,11 +292,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
-    width: Dimensions.get('window').width / 2 - 15,
+  },
+  noticiaItem: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    marginBottom: 10,
+    elevation: 4,
+    marginVertical: 5,
+    marginHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   image: {
     width: '100%',
-    height: Dimensions.get('window').width / 2 - 15,
+    aspectRatio: 1,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
     resizeMode: 'cover',

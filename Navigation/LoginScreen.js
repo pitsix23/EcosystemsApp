@@ -58,20 +58,25 @@ function LoginScreen() {
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.txtSubtitulo}>Ingresar con tu cuenta</Text>
-        <TextInput
-          placeholder='Correo Electrónico'
-          style={styles.txtInput}
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          placeholder='Contraseña'
-          secureTextEntry={true}
-          style={styles.txtInput}
-          value={password}
-          onChangeText={setPassword}
-        />
-
+        <View style={styles.inputContainer}>
+          <Image source={require('../images/mail.png')} style={styles.icon} />
+          <TextInput
+            placeholder='Correo Electrónico'
+            style={styles.txtInput}
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Image source={require('../images/key (1).png')} style={styles.icon} />
+          <TextInput
+            placeholder='Contraseña'
+            secureTextEntry={true}
+            style={styles.txtInput}
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
         <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
           <Text style={styles.txtPass}>¿Has olvidado tu contraseña?</Text>
         </TouchableOpacity>
@@ -140,14 +145,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
     borderRadius: 30,
-    paddingLeft: 30,
-    marginTop: 20,
+    paddingLeft: 40, // Ajusta el padding para que el ícono esté alineado con el texto
+    marginTop: 10,
     borderColor: 'gray',
-    color: '#000000',
     backgroundColor: '#F5F5F5',
-    shadowColor: '#000000',
+    shadowColor: '#837B7B',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 4,
+    shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 10,
   },
@@ -186,6 +190,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 5,
     textDecorationLine: 'underline',
+  },
+  inputContainer: {
+    position: 'relative',
+    width: '100%',
+    marginBottom: 10,
+  },
+  icon: {
+    position: 'absolute',
+    left: 10,
+    top: 24,
+    width: 20,
+    height: 20,
+    zIndex: 1,
   },
 });
 

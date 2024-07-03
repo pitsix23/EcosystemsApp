@@ -48,12 +48,15 @@ const ResetPasswordScreen = ({ navigation }) => {
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.title}>Restablecer Contraseña</Text>
-        <TextInput
-          placeholder='Correo Electrónico'
-          style={styles.input}
-          value={emailAddress}
-          onChangeText={setEmailAddress}
-        />
+        <View style={styles.inputContainer}>
+          <Image source={require('../images/mail.png')} style={styles.ficon} />
+          <TextInput
+            placeholder='Correo Electrónico'
+            style={styles.input}
+            value={emailAddress}
+            onChangeText={setEmailAddress}
+          />
+        </View>
         <TouchableOpacity onPress={handleSendEmail}>
           <LinearGradient
             colors={['#00C164', '#005B58']}
@@ -102,22 +105,32 @@ const styles = StyleSheet.create({
     color: '#837B7B',
     marginBottom: 20,
   },
+  inputContainer: {
+    position: 'relative',
+    width: '100%',
+    marginBottom: 10,
+  },
+  ficon: {
+    position: 'absolute',
+    left: 10,
+    top: 24,
+    width: 20,
+    height: 20,
+    zIndex: 1,
+  },
   input: {
     width: '100%',
     height: 50,
-    borderColor: '#D9D9D9',
-    borderWidth: 1,
-    paddingLeft: 40,
     borderRadius: 30,
+    paddingLeft: 40, // Ajusta el padding para que el ícono esté alineado con el texto
+    marginTop: 10,
+    borderColor: 'gray',
+    backgroundColor: '#F5F5F5',
     shadowColor: '#837B7B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 10,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    backgroundColor: '#F5F5F5',
-    color: '#333',
   },
   button: {
     borderRadius: 30,

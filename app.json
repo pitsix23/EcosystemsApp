@@ -2,7 +2,12 @@
   "expo": {
     "name": "EcosystemsApp",
     "slug": "EcosystemsApp",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "3398b8dc-adb9-4f40-bd03-b124a9298273"
+      }
+    }
   },
   "name": "EcosystemsApp"
 }

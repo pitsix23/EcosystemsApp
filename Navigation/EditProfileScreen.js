@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ImageBackground, Image, StyleSheet, Alert, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getDatabase, ref as dbRef, set, get, child } from 'firebase/database';
+import { getDatabase, ref as dbRef, set, get } from 'firebase/database';
 import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { db, storage } from '../accesoFirebase';
 import UserContext from './UserContext';
 
@@ -14,9 +15,11 @@ const EditProfileScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [age, setAge] = useState('');
+  const [birthdate, setBirthdate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [profileImage, setProfileImage] = useState(null); 
   const [profileImageUrl, setProfileImageUrl] = useState(null); 
+  const [birthdateString, setBirthdateString] = useState('');
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -29,8 +32,10 @@ const EditProfileScreen = ({ navigation }) => {
           const userData = querySnapshot.docs[0].data();
           setName(userData.nombre);
           setEmail(userData.correo);
-          if (userData.edad !== undefined) {
-            setAge(userData.edad.toString());
+          if (userData.fechaNacimiento !== undefined) {
+            const birthdate = new Date(userData.fechaNacimiento);
+            setBirthdate(birthdate);
+            setBirthdateString(birthdate.toISOString().split('T')[0]);
           }
           const db = getDatabase();
           const profileRef = dbRef(db, `profile/${userEmail.replace('.', '_')}`);
@@ -98,7 +103,7 @@ const EditProfileScreen = ({ navigation }) => {
         const updatedData = {
           nombre: name,
           correo: email,
-          edad: parseInt(age),
+          fechaNacimiento: birthdate.toISOString().split('T')[0],
         };
 
         if (password.trim() !== '') {
@@ -128,6 +133,14 @@ const EditProfileScreen = ({ navigation }) => {
       Alert.alert('Error', 'Hubo un problema al actualizar el perfil.');
     }
   };
+
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || birthdate;
+    setShowDatePicker(Platform.OS === 'ios');
+    setBirthdate(currentDate);
+    setBirthdateString(currentDate.toISOString().split('T')[0]);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.halfBackground}>
@@ -143,39 +156,63 @@ const EditProfileScreen = ({ navigation }) => {
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.title}>Editar Perfil</Text>
-        <TextInput
-          placeholder='Nombre Completo'
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-        />
-        <Text style={styles.eInput}>
-          {email}
-        </Text>
-        <TextInput
-          placeholder='Contraseña actual'
-          style={styles.input}
-          value={currentPassword}
-          onChangeText={setCurrentPassword}
-          secureTextEntry={true}
-        />
-        <TextInput
-          placeholder='Nueva Contraseña'
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-        />
+        <View style={styles.inputContainer}>
+        <Image source={require('../images/user.png')} style={styles.ficon} />
+          <TextInput
+            placeholder='Nombre Completo'
+            style={styles.txtInput}
+            value={name}
+            onChangeText={setName}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+        <Image source={require('../images/mail.png')} style={styles.ficon} />
+          <Text style={styles.eInput}>
+            {email}
+          </Text>
+        </View>
+        <View style={styles.inputContainer}>
+        <Image source={require('../images/key (1).png')} style={styles.ficon} />
+          <TextInput
+            placeholder='Contraseña actual'
+            style={styles.txtInput}
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            secureTextEntry={true}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+        <Image source={require('../images/key.png')} style={styles.ficon} />
+          <TextInput
+            placeholder='Nueva Contraseña'
+            style={styles.txtInput}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+          />
+        </View>
         <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
           <Text style={styles.txtPass}>¿Has olvidado tu contraseña?</Text>
         </TouchableOpacity>
-        <TextInput
-          placeholder='Edad'
-          style={styles.input}
-          value={age}
-          onChangeText={setAge}
-          keyboardType='numeric'
-        />
+        <View style={styles.inputContainer}>
+          <Image source={require('../images/birthday.png')} style={styles.ficon} />
+            <TextInput
+              placeholder='Fecha de Nacimiento'
+              style={styles.txtInput}
+              value={birthdateString}
+              onFocus={() => setShowDatePicker(true)}
+            />
+            {showDatePicker && (
+              <DateTimePicker
+                value={birthdate}
+                mode="date"
+                display="default"
+                onChange={onChange}
+                maximumDate={new Date(2024, 11, 31)}
+                minimumDate={new Date(1900, 0, 1)}
+              />
+            )}
+          </View>
 
         <TouchableOpacity onPress={handleUpdateProfile}>
           <LinearGradient
@@ -219,6 +256,20 @@ const styles = StyleSheet.create({
     height: 150,
     resizeMode: 'contain',
   },
+  txtInput: {
+    width: '100%',
+    height: 50,
+    borderRadius: 30,
+    paddingLeft: 40, // Ajusta el padding para que el ícono esté alineado con el texto
+    marginTop: 10,
+    borderColor: 'gray',
+    backgroundColor: '#F5F5F5',
+    shadowColor: '#837B7B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 10,
+  },
   formContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)', 
     borderRadius: 10,
@@ -247,22 +298,24 @@ const styles = StyleSheet.create({
   eInput: {
     width: '100%',
     height: 50,
-    paddingVertical: 15,
-    borderColor: '#D9D9D9',
-    borderWidth: 1,
-    paddingLeft: 20,
     borderRadius: 30,
-    marginBottom: 20,
+    paddingVertical: 15,
+    paddingLeft: 40, // Ajusta el padding para que el ícono esté alineado con el texto
+    marginTop: 10,
+    borderColor: 'gray',
     backgroundColor: '#F5F5F5',
-    color: '#333',
+    shadowColor: '#837B7B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 10,
   },
   txtPass: {
     textAlign: 'center',
     color: 'green',
     fontSize: 15,
     fontWeight: 'bold',
-    marginTop: -10,
-    margin: 10,
+    marginTop: 0,
     textDecorationLine: 'underline',
   },
   button: {
@@ -304,6 +357,19 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 0,
     position: 'absolute',
+  },
+  ficon: {
+    position: 'absolute',
+    left: 10,
+    top: 24,
+    width: 20,
+    height: 20,
+    zIndex: 1,
+  },
+  inputContainer: {
+    position: 'relative',
+    width: '100%',
+    marginBottom: 10,
   },
 });
 

@@ -51,32 +51,44 @@ export default function RegisterScreen({ navigation }) {
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.title}>Crear Cuenta Nueva</Text>
-        <TextInput
-          placeholder='Nombre'
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-        />
-        <TextInput
-          placeholder='Correo Electrónico'
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          placeholder='Contraseña'
-          secureTextEntry={true}
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TextInput
-          placeholder='Confirmar Contraseña'
-          secureTextEntry={true}
-          style={styles.input}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
+          <View style={styles.inputContainer}>
+          <Image source={require('../images/user.png')} style={styles.ficon} />
+          <TextInput
+            placeholder='Nombre'
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Image source={require('../images/mail.png')} style={styles.ficon} />
+          <TextInput
+            placeholder='Correo Electrónico'
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Image source={require('../images/key (1).png')} style={styles.ficon} />
+          <TextInput
+            placeholder='Contraseña'
+            secureTextEntry={true}
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Image source={require('../images/key.png')} style={styles.ficon} />
+          <TextInput
+            placeholder='Confirmar Contraseña'
+            secureTextEntry={true}
+            style={styles.input}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+        </View>
         <TouchableOpacity onPress={handleRegister}>
           <LinearGradient
             colors={['#00C164', '#005B58']}
@@ -128,19 +140,17 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     height: 50,
-    borderColor: '#D9D9D9',
-    borderWidth: 1,
-    paddingLeft: 40,
     borderRadius: 30,
+    paddingVertical: 15,
+    paddingLeft: 40, // Ajusta el padding para que el ícono esté alineado con el texto
+    marginTop: 10,
+    borderColor: 'gray',
+    backgroundColor: '#F5F5F5',
     shadowColor: '#837B7B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 10,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    backgroundColor: '#F5F5F5',
-    color: '#333',
   },
   button: {
     borderRadius: 30,
@@ -162,5 +172,18 @@ const styles = StyleSheet.create({
     width: 180, 
     height: 180,
     resizeMode: 'contain',
+  },
+  ficon: {
+    position: 'absolute',
+    left: 10,
+    top: 24,
+    width: 20,
+    height: 20,
+    zIndex: 1,
+  },
+  inputContainer: {
+    position: 'relative',
+    width: '100%',
+    marginBottom: 10,
   },
 });

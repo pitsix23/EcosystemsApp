@@ -1,5 +1,8 @@
 import React from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet } from 'react-native';
+import { View, Text, ImageBackground, StyleSheet, Dimensions } from 'react-native';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 function DetalleNoticiaScreen({ route }) {
   const { noticia } = route.params;
@@ -9,11 +12,11 @@ function DetalleNoticiaScreen({ route }) {
       <View style={styles.halfBackground}>
         <ImageBackground source={require('../images/img_fondo.png')} style={styles.backgroundImage} imageStyle={styles.imageStyle}>
           <View style={styles.overlay}>
-            <Image source={require('../images/logo_2.png')} style={styles.logoImage} />
+            {/* Aquí puedes poner cualquier elemento que desees sobre el fondo */}
           </View>
         </ImageBackground>
       </View>
-      <View style={styles.formContainer}>
+      <View style={[styles.formContainer, { height: windowHeight * 0.7 }]}>
         <Text style={styles.text}>{noticia.texto}</Text>
       </View>
     </View>
@@ -34,7 +37,7 @@ const styles = StyleSheet.create({
   formContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.6)', 
     borderRadius: 10,
-    marginTop:10,
+    marginTop: 10,
     padding: 20, 
     alignItems: 'center',
     justifyContent: 'center',
@@ -53,11 +56,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     padding: 20,
   },
-  headerButtonContainer: {
-    position: 'absolute',
-    top: 37,
-    right: 20,
-  },
   logoImage: {
     position: 'absolute',
     top: 22,
@@ -69,6 +67,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     textAlign: 'justify',
+    paddingHorizontal: 20,
   },
 });
 

@@ -1,22 +1,25 @@
 import React from 'react';
-import { View, Text, Image, ImageBackground, StyleSheet } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, Dimensions } from 'react-native';
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 function DetalleImagenScreen({ route }) {
   const { image } = route.params;
 
   return (
     <View style={styles.container}>
-        <View style={styles.halfBackground}>
+      <View style={styles.halfBackground}>
         <ImageBackground source={require('../images/img_fondo.png')} style={styles.backgroundImage} imageStyle={styles.imageStyle}>
           <View style={styles.overlay}>
             <Image source={require('../images/logo_2.png')} style={styles.logoImage} />
           </View>
         </ImageBackground>
       </View>
-      <View style={styles.formContainer}>
+      <View style={[styles.formContainer, { height: windowHeight * 0.7 }]}>
         <Image source={{ uri: image.url }} style={styles.image} />
         <Text style={styles.description}>{image.description}</Text>
-        </View>
+      </View>
     </View>
   );
 }
@@ -46,16 +49,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     padding: 20,
   },
-  headerButtonContainer: {
-    position: 'absolute',
-    top: 37,
-    right: 20,
-  },
   formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.6)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 10,
-    marginTop:10,
-    padding: 20, 
+    marginTop: 10,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -69,7 +67,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: '60%',
+    height: '80%', // Ajusta según lo que desees ocupar del contenedor
     resizeMode: 'contain',
     marginBottom: 20,
   },
