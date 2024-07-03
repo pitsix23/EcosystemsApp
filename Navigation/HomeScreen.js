@@ -136,11 +136,9 @@ function HomeScreen() {
         });
       })
     ]).then(([noticiasArray, imagesArray]) => {
-      // Combine and sort by timestamp
       const combinedArray = [...imagesArray, ...noticiasArray];
       combinedArray.sort((a, b) => b.timestamp - a.timestamp); 
       
-      // Set state
       setDataToShow(combinedArray);
       setLoading(false);
       setRefreshing(false);

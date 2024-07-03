@@ -12,7 +12,6 @@ function DetalleNoticiaScreen({ route }) {
       <View style={styles.halfBackground}>
         <ImageBackground source={require('../images/img_fondo.png')} style={styles.backgroundImage} imageStyle={styles.imageStyle}>
           <View style={styles.overlay}>
-            {/* Aquí puedes poner cualquier elemento que desees sobre el fondo */}
           </View>
         </ImageBackground>
       </View>

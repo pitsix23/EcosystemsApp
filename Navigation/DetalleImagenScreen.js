@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: '80%', // Ajusta según lo que desees ocupar del contenedor
+    height: '80%', 
     resizeMode: 'contain',
     marginBottom: 20,
   },
